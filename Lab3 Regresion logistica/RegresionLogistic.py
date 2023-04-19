@@ -88,7 +88,7 @@ class RegresionLogistic:
             for i in range(len(thetha)):
                 suma = 0
                 for j in range(len(self.elementos)):
-                    suma = suma + (etiquetas.loc[etiquetas.index.values[j]] - self.logisticFunction(thetha, self.elementos.loc[self.elementos.index.values[j]]))  * self.elementos.loc[self.elementos.index.values[j]].loc[self.elementos.columns[i]]              
+                    suma = suma + (etiquetas.loc[etiquetas.index.values[j]] - self.logisticFunction(thetha, self.elementos.loc[self.elementos.index.values[j]]))  *self.elementos.loc[self.elementos.index.values[j]].loc[self.elementos.columns[i]]              
                 propose[i] = thetha[i] + 0.02*(suma)
             if self.test(thetha, propose) <= 2.5:
                 cont = cont  + 1
@@ -142,6 +142,7 @@ class RegresionLogistic:
         '''
         suma = 0
         for i in range(len(thetha)):
+
             suma = suma + thetha[i] * x[i]
         return (1/(1+np.exp(-suma)))
     
@@ -170,8 +171,9 @@ class RegresionLogistic:
                 else:
                     labels.append(0)
             predicts.append(labels)
-        indices = self.indexMatches(predicts)
-        return pd.Series(self.calculateLabel(indices, x),index=x.index.values)
+        if len(self.clases) == 2:
+            return pd.Series(self.calculateLabel(predicts),index=x.index.values)
+        return pd.Series(self.calculateLabel(self.indexMatche(predicts), X=x),index=x.index.values)
         
     def indexMatches(self,lista):
         '''
@@ -256,7 +258,7 @@ class RegresionLogistic:
         else:
             return self.clases[np.random.randint(0,len(self.clases))]
     
-    def calculateLabel(self,indices,x):
+    def calculateLabel(self,indices,X=1):
         '''
         Calcula la eitqueta para la instancia x
 
@@ -274,11 +276,18 @@ class RegresionLogistic:
 
         '''
         labels = []
-        for i in range(len(indices)):
-            if len(indices[i]) == 1 :
-                labels.append(self.clases[indices[i][0]])
-            else:
-                labels.append(self.calculateDistance(indices[i],x.loc[x.index.values[i]]))
+        if len(indices) == 1:
+            for i in range(len(indices[0])):
+                if indices[0][i] == 0:
+                    labels.append(self.clases[indices[0][1]])
+                else:
+                    labels.append(self.clases[indices[0][0]])
+        else:
+            for i in range(len(indices)): 
+                if len(indices[i]) == 1 :
+                    labels.append(self.clases[indices[i][0]])
+                else:
+                    labels.append(self.calculateDistance(indices[i],X.loc[X.index.values[i]]))
         return labels
     
     def CalculateAccuracy(self,Ypredict,Ytest):
@@ -297,10 +306,10 @@ class RegresionLogistic:
         None.
 
         '''
-        size = Ytest.shape[0]
-        Ypredict = list(Ypredict)
-        Ytest = list(Ytest)
-        accuracy = sum([1 for x in Ytest if x in Ypredict])/size
-        print("La Exactitud es: ",accuracy*100,"%")
-        
+        size = len(Ypredict)
+        suma = 0
+        for i in range(size):
+            if Ypredict.loc[Ypredict.index.values[i]] == Ytest.loc[Ypredict.index.values[i]]:
+                suma = suma + 1
+        return suma/size
             

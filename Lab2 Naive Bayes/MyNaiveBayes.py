@@ -148,7 +148,6 @@ class NaiveBayesReal:
         Returns
         -------
         None.
-
         '''
         atributos = []
         for x in range(len(self.clases)):
